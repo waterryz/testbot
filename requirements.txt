@@ -1,0 +1,5 @@
+fastapi
+uvicorn
+aiogram==3.*
+python-dotenv
+email-validator
