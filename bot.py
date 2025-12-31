@@ -17,7 +17,7 @@ TEXT = {
         "tlc": "У вас есть TLC-лицензия?",
         "exp": "Стаж вождения в США 1+ год?",
         "rent": "Вы ищете автомобиль в аренду?",
-        "car": "Вам подходит Toyota Sienna Hybrid (VAN)?",
+        "car": "Вам подходит Toyota Sienna Hybrid (VAW)?",
         "fail": "К сожалению, вы не подходите под условия.",
         "success": "✅ Вы подходите!\n\nПерейдите на сайт для бронирования.",
         "site": "🚗 Перейти на сайт"
@@ -28,7 +28,7 @@ TEXT = {
         "tlc": "Do you have a TLC license?",
         "exp": "Do you have 1+ year driving experience in the USA?",
         "rent": "Are you looking for a rental car?",
-        "car": "Is Toyota Sienna Hybrid (VAN) suitable for you?",
+        "car": "Is Toyota Sienna Hybrid (VAW) suitable for you?",
         "fail": "Sorry, you do not meet the requirements.",
         "success": "✅ You qualify!\n\nGo to the website for booking.",
         "site": "🚗 Go to website"
@@ -128,3 +128,4 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
