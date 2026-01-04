@@ -164,14 +164,12 @@ async def handle_driver_messages(message: types.Message):
     await message.answer("✅ Принято. Информация передана администрации.")
 
 # ================== RUN ==================
-@dp.message()
-async def debug(message: types.Message):
-    print("CHAT ID:", message.chat.id)
 
 async def main():
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
