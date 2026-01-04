@@ -15,14 +15,29 @@ BOT_TOKEN = "8550400671:AAHZdPJcWi_NtkurCHGxUgmRsQKMTu3826g"
 CHANNEL_ID = -1003580316890
 SITE_URL = "https://www.primefusioncars.com/"
 
-ALLOWED_DRIVERS = {5348697217, 222222222}
+ALLOWED_DRIVERS = {5348697217, 547004364}
 
 bot = Bot(BOT_TOKEN)
 dp = Dispatcher()
 
 # ================== ВРЕМЕННОЕ СОСТОЯНИЕ ==================
 TEMP = {}
-# user_id: {"step": "name", "name": str}
+# user_id: {"step": "...", "name": str}
+
+# ================== ТЕКСТЫ АНКЕТЫ ==================
+TEXT = {
+    "welcome": "Ответьте на несколько вопросов:",
+    "tlc": "Есть ли у вас TLC-лицензия?",
+    "exp": "Стаж вождения в США 1+ год?",
+    "rent": "Вы ищете автомобиль в аренду?",
+    "car": "Подходит ли Toyota Sienna Hybrid (VAN)?",
+    "fail": "К сожалению, на данный момент сервис вам не подходит.",
+    "success": (
+        "✅ Вы подходите под условия.\n\n"
+        "Перейдите на сайт для получения полной информации и бронирования."
+    ),
+    "site": "🚗 Перейти на сайт"
+}
 
 # ================== КНОПКИ ==================
 def main_menu_kb():
@@ -33,24 +48,29 @@ def main_menu_kb():
 
 def bottom_menu_kb():
     return ReplyKeyboardMarkup(
-        keyboard=[
-            [KeyboardButton(text="🔄 В главное меню")]
-        ],
+        keyboard=[[KeyboardButton(text="🔄 В главное меню")]],
         resize_keyboard=True
     )
+
+def yes_no_kb(step: str):
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="✅ Да", callback_data=f"{step}:yes"),
+            InlineKeyboardButton(text="❌ Нет", callback_data=f"{step}:no"),
+        ]
+    ])
+
+def site_kb():
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(
+            text=TEXT["site"],
+            web_app=WebAppInfo(url=SITE_URL)
+        )]
+    ])
 
 # ================== START ==================
 @dp.message(CommandStart())
 async def start(message: types.Message):
-    TEMP.pop(message.from_user.id, None)
-    await message.answer(
-        "Выберите действие:",
-        reply_markup=main_menu_kb()
-    )
-
-# ================== КНОПКА СНИЗУ ==================
-@dp.message(lambda m: m.text == "🔄 В главное меню")
-async def go_main_menu(message: types.Message):
     TEMP.pop(message.from_user.id, None)
     await message.answer(
         "Выберите действие:",
@@ -61,17 +81,61 @@ async def go_main_menu(message: types.Message):
         reply_markup=main_menu_kb()
     )
 
-# ================== НОВЫЙ АРЕНДАТОР ==================
+# ================== КНОПКА СНИЗУ ==================
+@dp.message(lambda m: m.text == "🔄 В главное меню")
+async def go_main_menu(message: types.Message):
+    TEMP.pop(message.from_user.id, None)
+    await message.answer(
+        "Главное меню:",
+        reply_markup=ReplyKeyboardRemove()
+    )
+    await message.answer(
+        "Выберите действие:",
+        reply_markup=main_menu_kb()
+    )
+
+# ================== НОВЫЙ АРЕНДАТОР (АНКЕТА) ==================
 @dp.callback_query(lambda c: c.data == "role:new")
 async def new_renter(callback: types.CallbackQuery):
     await callback.message.edit_text(
-        "📝 Для аренды автомобиля перейдите на сайт:",
-        reply_markup=InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(
-                text="🚗 Перейти на сайт",
-                web_app=WebAppInfo(url=SITE_URL)
-            )]
-        ])
+        TEXT["welcome"],
+        reply_markup=yes_no_kb("tlc")
+    )
+
+@dp.callback_query(lambda c: c.data.startswith("tlc"))
+async def q_tlc(callback: types.CallbackQuery):
+    _, answer = callback.data.split(":")
+    if answer == "no":
+        await callback.message.edit_text(TEXT["fail"])
+        return
+    await callback.message.edit_text(TEXT["exp"], reply_markup=yes_no_kb("exp"))
+
+@dp.callback_query(lambda c: c.data.startswith("exp"))
+async def q_exp(callback: types.CallbackQuery):
+    _, answer = callback.data.split(":")
+    if answer == "no":
+        await callback.message.edit_text(TEXT["fail"])
+        return
+    await callback.message.edit_text(TEXT["rent"], reply_markup=yes_no_kb("rent"))
+
+@dp.callback_query(lambda c: c.data.startswith("rent"))
+async def q_rent(callback: types.CallbackQuery):
+    _, answer = callback.data.split(":")
+    if answer == "no":
+        await callback.message.edit_text(TEXT["fail"])
+        return
+    await callback.message.edit_text(TEXT["car"], reply_markup=yes_no_kb("car"))
+
+@dp.callback_query(lambda c: c.data.startswith("car"))
+async def q_car(callback: types.CallbackQuery):
+    _, answer = callback.data.split(":")
+    if answer == "no":
+        await callback.message.edit_text(TEXT["fail"])
+        return
+
+    await callback.message.edit_text(
+        TEXT["success"],
+        reply_markup=site_kb()
     )
 
 # ================== ДЕЙСТВУЮЩИЙ ВОДИТЕЛЬ ==================
@@ -95,7 +159,7 @@ async def active_driver(callback: types.CallbackQuery):
         reply_markup=bottom_menu_kb()
     )
 
-# ================== СООБЩЕНИЯ ==================
+# ================== СООБЩЕНИЯ ОТ ВОДИТЕЛЕЙ ==================
 @dp.message()
 async def handle_messages(message: types.Message):
     uid = message.from_user.id
@@ -103,17 +167,14 @@ async def handle_messages(message: types.Message):
     if uid not in TEMP:
         return
 
-    # Шаг 1 — имя
+    # шаг 1 — имя
     if TEMP[uid]["step"] == "name":
         TEMP[uid]["name"] = message.text.strip()
         TEMP[uid]["step"] = "msg"
-
-        await message.answer(
-            "✍️ Теперь напишите сообщение по работе:"
-        )
+        await message.answer("✍️ Теперь напишите сообщение по работе:")
         return
 
-    # Шаг 2 — сообщение
+    # шаг 2 — сообщение
     if TEMP[uid]["step"] == "msg":
         text = (
             "🚗 Сообщение от водителя\n\n"
@@ -131,7 +192,7 @@ async def handle_messages(message: types.Message):
             reply_markup=bottom_menu_kb()
         )
 
-        TEMP[uid]["step"] = "msg"  # можно писать ещё
+        TEMP[uid]["step"] = "msg"
 
 # ================== RUN ==================
 async def main():
@@ -139,4 +200,3 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
-
