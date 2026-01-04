@@ -132,3 +132,11 @@ async def handle_messages(message: types.Message):
         )
 
         TEMP[uid]["step"] = "msg"  # можно писать ещё
+
+# ================== RUN ==================
+async def main():
+    await dp.start_polling(bot)
+
+if __name__ == "__main__":
+    asyncio.run(main())
+
