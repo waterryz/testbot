@@ -1,7 +1,14 @@
 import asyncio
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import CommandStart
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
+from aiogram.types import (
+    InlineKeyboardMarkup,
+    InlineKeyboardButton,
+    ReplyKeyboardMarkup,
+    KeyboardButton,
+    ReplyKeyboardRemove,
+    WebAppInfo
+)
 
 # ================== НАСТРОЙКИ ==================
 BOT_TOKEN = "8550400671:AAHZdPJcWi_NtkurCHGxUgmRsQKMTu3826g"
@@ -13,8 +20,9 @@ ALLOWED_DRIVERS = {5348697217, 222222222}
 bot = Bot(BOT_TOKEN)
 dp = Dispatcher()
 
-# ================== ВРЕМЕННЫЕ ДАННЫЕ ==================
-TEMP = {}  # user_id: {"step": "name"}
+# ================== ВРЕМЕННОЕ СОСТОЯНИЕ ==================
+TEMP = {}
+# user_id: {"step": "name", "name": str}
 
 # ================== КНОПКИ ==================
 def main_menu_kb():
@@ -23,30 +31,33 @@ def main_menu_kb():
         [InlineKeyboardButton(text="🚗 Действующий водитель", callback_data="role:active")]
     ])
 
-def back_kb():
-    return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="⬅️ Назад", callback_data="back")]
-    ])
-
-def restart_kb():
-    return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="🔄 Запустить бота", callback_data="restart")]
-    ])
+def bottom_menu_kb():
+    return ReplyKeyboardMarkup(
+        keyboard=[
+            [KeyboardButton(text="🔄 В главное меню")]
+        ],
+        resize_keyboard=True
+    )
 
 # ================== START ==================
 @dp.message(CommandStart())
 async def start(message: types.Message):
+    TEMP.pop(message.from_user.id, None)
     await message.answer(
         "Выберите действие:",
         reply_markup=main_menu_kb()
     )
 
-# ================== RESTART ==================
-@dp.callback_query(lambda c: c.data in ("restart", "back"))
-async def restart(callback: types.CallbackQuery):
-    TEMP.pop(callback.from_user.id, None)
-    await callback.message.edit_text(
+# ================== КНОПКА СНИЗУ ==================
+@dp.message(lambda m: m.text == "🔄 В главное меню")
+async def go_main_menu(message: types.Message):
+    TEMP.pop(message.from_user.id, None)
+    await message.answer(
         "Выберите действие:",
+        reply_markup=ReplyKeyboardRemove()
+    )
+    await message.answer(
+        "Главное меню:",
         reply_markup=main_menu_kb()
     )
 
@@ -59,8 +70,7 @@ async def new_renter(callback: types.CallbackQuery):
             [InlineKeyboardButton(
                 text="🚗 Перейти на сайт",
                 web_app=WebAppInfo(url=SITE_URL)
-            )],
-            [InlineKeyboardButton(text="⬅️ Назад", callback_data="back")]
+            )]
         ])
     )
 
@@ -71,16 +81,18 @@ async def active_driver(callback: types.CallbackQuery):
 
     if uid not in ALLOWED_DRIVERS:
         await callback.message.edit_text(
-            "⛔️ У вас нет доступа.\n"
-            "Обратитесь к администрации.",
-            reply_markup=restart_kb()
+            "⛔️ У вас нет доступа.\nОбратитесь к администрации."
         )
         return
 
     TEMP[uid] = {"step": "name"}
+
     await callback.message.edit_text(
-        "Введите ваше **Имя и Фамилию**:",
-        reply_markup=back_kb()
+        "Введите ваше **Имя и Фамилию**:"
+    )
+    await callback.message.answer(
+        "Вы можете в любой момент вернуться в меню 👇",
+        reply_markup=bottom_menu_kb()
     )
 
 # ================== СООБЩЕНИЯ ==================
@@ -91,18 +103,17 @@ async def handle_messages(message: types.Message):
     if uid not in TEMP:
         return
 
-    # шаг 1 — имя
+    # Шаг 1 — имя
     if TEMP[uid]["step"] == "name":
         TEMP[uid]["name"] = message.text.strip()
         TEMP[uid]["step"] = "msg"
 
         await message.answer(
-            "✍️ Теперь напишите сообщение по работе:",
-            reply_markup=back_kb()
+            "✍️ Теперь напишите сообщение по работе:"
         )
         return
 
-    # шаг 2 — сообщение
+    # Шаг 2 — сообщение
     if TEMP[uid]["step"] == "msg":
         text = (
             "🚗 Сообщение от водителя\n\n"
@@ -115,15 +126,9 @@ async def handle_messages(message: types.Message):
         await bot.send_message(CHANNEL_ID, text)
 
         await message.answer(
-            "✅ Сообщение отправлено администрации",
-            reply_markup=restart_kb()
+            "✅ Сообщение отправлено администрации.\n"
+            "Можете отправить ещё одно или вернуться в меню 👇",
+            reply_markup=bottom_menu_kb()
         )
 
-        TEMP.pop(uid, None)
-
-# ================== RUN ==================
-async def main():
-    await dp.start_polling(bot)
-
-if __name__ == "__main__":
-    asyncio.run(main())
+        TEMP[uid]["step"] = "msg"  # можно писать ещё
