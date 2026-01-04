@@ -1,33 +1,36 @@
 import asyncio
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import CommandStart
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
 
 # ================== НАСТРОЙКИ ==================
 BOT_TOKEN = "8550400671:AAHZdPJcWi_NtkurCHGxUgmRsQKMTu3826g"
 CHANNEL_ID = -1003580316890
+SITE_URL = "https://www.primefusioncars.com/"
 
-ALLOWED_DRIVERS = {
-    5348697217,
-    222222222,
-}
+ALLOWED_DRIVERS = {5348697217, 222222222}
 
 bot = Bot(BOT_TOKEN)
 dp = Dispatcher()
 
-# ================== ВРЕМЕННОЕ ХРАНИЛИЩЕ ==================
-TEMP = {}
-# user_id: {"name": str}
+# ================== ВРЕМЕННЫЕ ДАННЫЕ ==================
+TEMP = {}  # user_id: {"step": "name"}
 
 # ================== КНОПКИ ==================
+def main_menu_kb():
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="🆕 Новый арендатор", callback_data="role:new")],
+        [InlineKeyboardButton(text="🚗 Действующий водитель", callback_data="role:active")]
+    ])
+
 def back_kb():
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="⬅️ Назад", callback_data="back")]
     ])
 
-def main_menu_kb():
+def restart_kb():
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="🚗 Действующий водитель", callback_data="role:active")]
+        [InlineKeyboardButton(text="🔄 Запустить бота", callback_data="restart")]
     ])
 
 # ================== START ==================
@@ -38,25 +41,43 @@ async def start(message: types.Message):
         reply_markup=main_menu_kb()
     )
 
-# ================== НАЗАД ==================
-@dp.callback_query(lambda c: c.data == "back")
-async def back(callback: types.CallbackQuery):
+# ================== RESTART ==================
+@dp.callback_query(lambda c: c.data in ("restart", "back"))
+async def restart(callback: types.CallbackQuery):
     TEMP.pop(callback.from_user.id, None)
     await callback.message.edit_text(
         "Выберите действие:",
         reply_markup=main_menu_kb()
     )
 
+# ================== НОВЫЙ АРЕНДАТОР ==================
+@dp.callback_query(lambda c: c.data == "role:new")
+async def new_renter(callback: types.CallbackQuery):
+    await callback.message.edit_text(
+        "📝 Для аренды автомобиля перейдите на сайт:",
+        reply_markup=InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(
+                text="🚗 Перейти на сайт",
+                web_app=WebAppInfo(url=SITE_URL)
+            )],
+            [InlineKeyboardButton(text="⬅️ Назад", callback_data="back")]
+        ])
+    )
+
 # ================== ДЕЙСТВУЮЩИЙ ВОДИТЕЛЬ ==================
 @dp.callback_query(lambda c: c.data == "role:active")
-async def role_active(callback: types.CallbackQuery):
+async def active_driver(callback: types.CallbackQuery):
     uid = callback.from_user.id
 
     if uid not in ALLOWED_DRIVERS:
-        await callback.message.edit_text("⛔️ У вас нет доступа")
+        await callback.message.edit_text(
+            "⛔️ У вас нет доступа.\n"
+            "Обратитесь к администрации.",
+            reply_markup=restart_kb()
+        )
         return
 
-    TEMP[uid] = {}
+    TEMP[uid] = {"step": "name"}
     await callback.message.edit_text(
         "Введите ваше **Имя и Фамилию**:",
         reply_markup=back_kb()
@@ -67,20 +88,22 @@ async def role_active(callback: types.CallbackQuery):
 async def handle_messages(message: types.Message):
     uid = message.from_user.id
 
-    if uid not in ALLOWED_DRIVERS:
+    if uid not in TEMP:
         return
 
-    # 1️⃣ Имя и фамилия
-    if uid in TEMP and "name" not in TEMP[uid]:
+    # шаг 1 — имя
+    if TEMP[uid]["step"] == "name":
         TEMP[uid]["name"] = message.text.strip()
+        TEMP[uid]["step"] = "msg"
+
         await message.answer(
             "✍️ Теперь напишите сообщение по работе:",
             reply_markup=back_kb()
         )
         return
 
-    # 2️⃣ Сообщение по работе
-    if uid in TEMP and "name" in TEMP[uid]:
+    # шаг 2 — сообщение
+    if TEMP[uid]["step"] == "msg":
         text = (
             "🚗 Сообщение от водителя\n\n"
             f"👤 {TEMP[uid]['name']}\n"
@@ -90,10 +113,13 @@ async def handle_messages(message: types.Message):
         )
 
         await bot.send_message(CHANNEL_ID, text)
-        await message.answer("✅ Сообщение отправлено администрации")
+
+        await message.answer(
+            "✅ Сообщение отправлено администрации",
+            reply_markup=restart_kb()
+        )
 
         TEMP.pop(uid, None)
-        return
 
 # ================== RUN ==================
 async def main():
