@@ -5,7 +5,7 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
 
 # ================== НАСТРОЙКИ ==================
 BOT_TOKEN = "8550400671:AAHZdPJcWi_NtkurCHGxUgmRsQKMTu3826g"
-CHANNEL_ID = -1001234567890  # канал администраторов
+CHANNEL_ID = -1003580316890  # канал администраторов
 SITE_URL = "https://www.primefusioncars.com/"
 
 # Telegram ID действующих водителей
@@ -173,4 +173,5 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 
