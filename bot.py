@@ -152,7 +152,7 @@ async def active_driver(callback: types.CallbackQuery):
     TEMP[uid] = {"step": "name"}
 
     await callback.message.edit_text(
-        "Введите ваше **Имя и Фамилию**:"
+        "Введите номер автомобиля:"
     )
     await callback.message.answer(
         "Вы можете в любой момент вернуться в меню 👇",
@@ -178,10 +178,10 @@ async def handle_messages(message: types.Message):
     if TEMP[uid]["step"] == "msg":
         text = (
             "🚗 Сообщение от водителя\n\n"
-            f"👤 {TEMP[uid]['name']}\n"
-            f"🆔 {uid}\n"
-            f"🔗 @{message.from_user.username or 'без username'}\n\n"
-            f"💬 {message.text}"
+            f"Номер машины: {TEMP[uid]['name']}\n"
+            f"ID: {uid}\n"
+            f"Юзернейм: @{message.from_user.username or 'без username'}\n\n"
+            f"Сообщение: {message.text}"
         )
 
         await bot.send_message(CHANNEL_ID, text)
@@ -200,5 +200,6 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
