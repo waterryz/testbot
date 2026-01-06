@@ -317,3 +317,11 @@ async def handle_messages(message: types.Message):
 
         TEMP[uid]["step"] = None
         await message.answer(TEXT[lang]["sent"], reply_markup=ReplyKeyboardRemove())
+
+# ================== RUN ==================
+async def main():
+    await dp.start_polling(bot)
+
+if __name__ == "__main__":
+    asyncio.run(main())
+
