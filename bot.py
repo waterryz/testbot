@@ -54,7 +54,7 @@ TEXT = {
 
         "consult_done": (
             "✅ Вопрос отправлен.\n"
-            "Оплата и дальнейшие шаги — через администратора."
+            "Оплата и дальнейшие шаги — через администратора он с вами свяжется."
         ),
 
         "fail": "❌ К сожалению, на данный момент сервис вам не подходит.",
@@ -107,7 +107,7 @@ TEXT = {
 
         "consult_done": (
             "✅ Question sent.\n"
-            "Payment and next steps via admin."
+            "Payment and next steps via admin, he will contact you."
         ),
 
         "fail": "❌ Unfortunately, the service is not available.",
@@ -324,4 +324,5 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 
