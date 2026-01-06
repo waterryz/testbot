@@ -22,28 +22,53 @@ dp = Dispatcher()
 
 # ================== ВРЕМЕННОЕ СОСТОЯНИЕ ==================
 TEMP = {}
-# user_id: {"step": "...", "name": str}
+# user_id: {"step": "...", "car": str}
 
-# ================== ТЕКСТЫ АНКЕТЫ ==================
+# ================== ТЕКСТЫ ==================
 TEXT = {
-    "welcome": "Ответьте на несколько вопросов:",
-    "tlc": "Есть ли у вас TLC-лицензия?",
-    "exp": "Стаж вождения в США 1+ год?",
-    "rent": "Вы ищете автомобиль в аренду?",
-    "car": "Подходит ли Toyota Sienna Hybrid (VAN)?",
-    "fail": "К сожалению, на данный момент сервис вам не подходит.",
+    "welcome": (
+        "👋 Добро пожаловать в Prime Fusion!\n\n"
+        "• Если вы *новый клиент* — пройдите анкету\n"
+        "• Если хотите *разместить свои автомобили на сайте* — свяжитесь с нами через контакты"
+    ),
+    "contacts": (
+        "📞 Контакты для сотрудничества и размещения авто:\n\n"
+        "Telegram: @primefusion_admin\n"
+        "Email: info@primefusioncars.com"
+    ),
+    "fail": "❌ К сожалению, на данный момент сервис вам не подходит.",
     "success": (
         "✅ Вы подходите под условия.\n\n"
         "Перейдите на сайт для получения полной информации и бронирования."
-    ),
-    "site": "🚗 Перейти на сайт"
+    )
 }
 
-# ================== КНОПКИ ==================
-def main_menu_kb():
+# ================== КЛАВИАТУРЫ ==================
+def menu_new_user_kb():
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="🆕 Новый арендатор", callback_data="role:new")],
-        [InlineKeyboardButton(text="🚗 Действующий водитель", callback_data="role:active")]
+        [InlineKeyboardButton(text="📝 Анкета", callback_data="menu:form")],
+        [InlineKeyboardButton(text="📞 Контакты", callback_data="menu:contacts")]
+    ])
+
+def menu_allowed_user_kb():
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="🧰 Рабочее меню", callback_data="menu:work")]
+    ])
+
+def yes_no_kb(step: str):
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="✅ Да", callback_data=f"{step}:yes"),
+            InlineKeyboardButton(text="❌ Нет", callback_data=f"{step}:no")
+        ]
+    ])
+
+def site_kb():
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(
+            text="🚗 Перейти на сайт",
+            web_app=WebAppInfo(url=SITE_URL)
+        )]
     ])
 
 def bottom_menu_kb():
@@ -52,147 +77,131 @@ def bottom_menu_kb():
         resize_keyboard=True
     )
 
-def yes_no_kb(step: str):
-    return InlineKeyboardMarkup(inline_keyboard=[
-        [
-            InlineKeyboardButton(text="✅ Да", callback_data=f"{step}:yes"),
-            InlineKeyboardButton(text="❌ Нет", callback_data=f"{step}:no"),
-        ]
-    ])
-
-def site_kb():
-    return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(
-            text=TEXT["site"],
-            web_app=WebAppInfo(url=SITE_URL)
-        )]
-    ])
-
 # ================== START ==================
 @dp.message(CommandStart())
 async def start(message: types.Message):
-    TEMP.pop(message.from_user.id, None)
-    await message.answer(
-        "Выберите действие:",
-        reply_markup=ReplyKeyboardRemove()
-    )
-    await message.answer(
-        "Главное меню:",
-        reply_markup=main_menu_kb()
-    )
+    uid = message.from_user.id
+    TEMP.pop(uid, None)
 
-# ================== КНОПКА СНИЗУ ==================
-@dp.message(lambda m: m.text == "🔄 В главное меню")
-async def go_main_menu(message: types.Message):
-    TEMP.pop(message.from_user.id, None)
     await message.answer(
-        "Главное меню:",
-        reply_markup=ReplyKeyboardRemove()
-    )
-    await message.answer(
-        "Выберите действие:",
-        reply_markup=main_menu_kb()
-    )
-
-# ================== НОВЫЙ АРЕНДАТОР (АНКЕТА) ==================
-@dp.callback_query(lambda c: c.data == "role:new")
-async def new_renter(callback: types.CallbackQuery):
-    await callback.message.edit_text(
         TEXT["welcome"],
+        parse_mode="Markdown",
+        reply_markup=ReplyKeyboardRemove()
+    )
+
+    if uid in ALLOWED_DRIVERS:
+        await message.answer(
+            "🧰 Рабочее меню 👇",
+            reply_markup=menu_allowed_user_kb()
+        )
+    else:
+        await message.answer(
+            "Выберите действие 👇",
+            reply_markup=menu_new_user_kb()
+        )
+
+# ================== ВОЗВРАТ В МЕНЮ ==================
+@dp.message(lambda m: m.text == "🔄 В главное меню")
+async def back_to_menu(message: types.Message):
+    await start(message)
+
+# ================== КОНТАКТЫ ==================
+@dp.callback_query(lambda c: c.data == "menu:contacts")
+async def menu_contacts(callback: types.CallbackQuery):
+    await callback.message.edit_text(TEXT["contacts"])
+
+# ================== АНКЕТА ==================
+@dp.callback_query(lambda c: c.data == "menu:form")
+async def form_start(callback: types.CallbackQuery):
+    await callback.message.edit_text(
+        "Есть ли у вас TLC-лицензия?",
         reply_markup=yes_no_kb("tlc")
     )
 
 @dp.callback_query(lambda c: c.data.startswith("tlc"))
 async def q_tlc(callback: types.CallbackQuery):
-    _, answer = callback.data.split(":")
-    if answer == "no":
+    if callback.data.endswith("no"):
         await callback.message.edit_text(TEXT["fail"])
         return
-    await callback.message.edit_text(TEXT["exp"], reply_markup=yes_no_kb("exp"))
+    await callback.message.edit_text(
+        "Стаж вождения в США 1+ год?",
+        reply_markup=yes_no_kb("exp")
+    )
 
 @dp.callback_query(lambda c: c.data.startswith("exp"))
 async def q_exp(callback: types.CallbackQuery):
-    _, answer = callback.data.split(":")
-    if answer == "no":
+    if callback.data.endswith("no"):
         await callback.message.edit_text(TEXT["fail"])
         return
-    await callback.message.edit_text(TEXT["rent"], reply_markup=yes_no_kb("rent"))
+    await callback.message.edit_text(
+        "Вы ищете автомобиль в аренду?",
+        reply_markup=yes_no_kb("rent")
+    )
 
 @dp.callback_query(lambda c: c.data.startswith("rent"))
 async def q_rent(callback: types.CallbackQuery):
-    _, answer = callback.data.split(":")
-    if answer == "no":
+    if callback.data.endswith("no"):
         await callback.message.edit_text(TEXT["fail"])
         return
-    await callback.message.edit_text(TEXT["car"], reply_markup=yes_no_kb("car"))
+    await callback.message.edit_text(
+        "Подходит ли Toyota Sienna Hybrid (VAN)?",
+        reply_markup=yes_no_kb("car")
+    )
 
 @dp.callback_query(lambda c: c.data.startswith("car"))
 async def q_car(callback: types.CallbackQuery):
-    _, answer = callback.data.split(":")
-    if answer == "no":
+    if callback.data.endswith("no"):
         await callback.message.edit_text(TEXT["fail"])
         return
-
     await callback.message.edit_text(
         TEXT["success"],
         reply_markup=site_kb()
     )
 
-# ================== ДЕЙСТВУЮЩИЙ ВОДИТЕЛЬ ==================
-@dp.callback_query(lambda c: c.data == "role:active")
-async def active_driver(callback: types.CallbackQuery):
+# ================== РАБОЧЕЕ МЕНЮ ==================
+@dp.callback_query(lambda c: c.data == "menu:work")
+async def work_menu(callback: types.CallbackQuery):
     uid = callback.from_user.id
-
     if uid not in ALLOWED_DRIVERS:
-        await callback.message.edit_text(
-            "⛔️ У вас нет доступа.\nОбратитесь к администрации."
-        )
+        await callback.message.edit_text("⛔️ У вас нет доступа.")
         return
 
-    TEMP[uid] = {"step": "name"}
-
-    await callback.message.edit_text(
-        "Введите номер автомобиля:"
-    )
+    TEMP[uid] = {"step": "car"}
+    await callback.message.edit_text("🚗 Введите номер автомобиля:")
     await callback.message.answer(
-        "Вы можете в любой момент вернуться в меню 👇",
+        "Вы можете вернуться в меню 👇",
         reply_markup=bottom_menu_kb()
     )
 
-# ================== СООБЩЕНИЯ ОТ ВОДИТЕЛЕЙ ==================
+# ================== СООБЩЕНИЯ ВОДИТЕЛЕЙ ==================
 @dp.message()
 async def handle_messages(message: types.Message):
     uid = message.from_user.id
-
     if uid not in TEMP:
         return
 
-    # шаг 1 — имя
-    if TEMP[uid]["step"] == "name":
-        TEMP[uid]["name"] = message.text.strip()
+    if TEMP[uid]["step"] == "car":
+        TEMP[uid]["car"] = message.text.strip()
         TEMP[uid]["step"] = "msg"
-        await message.answer("✍️ Теперь напишите сообщение по работе:")
+        await message.answer("✍️ Напишите сообщение администрации:")
         return
 
-    # шаг 2 — сообщение
     if TEMP[uid]["step"] == "msg":
         text = (
-            "🚗 Сообщение от водителя\n\n"
-            f"Номер машины: {TEMP[uid]['name']}\n"
+            "🚗 Сообщение от арендодатора\n\n"
+            f"Авто: {TEMP[uid]['car']}\n"
             f"ID: {uid}\n"
-            f"Юзернейм: @{message.from_user.username or 'без username'}\n\n"
-            f"Сообщение: {message.text}"
+            f"Username: @{message.from_user.username or 'нет'}\n\n"
+            f"Сообщение:\n{message.text}"
         )
 
         await bot.send_message(CHANNEL_ID, text)
 
         await message.answer(
-            "✅ Сообщение отправлено администрации.\n"
-            "Можете отправить ещё одно или вернуться в меню 👇",
+            "✅ Сообщение отправлено.\n"
+            "Можете написать ещё или вернуться в меню 👇",
             reply_markup=bottom_menu_kb()
         )
-
-        TEMP[uid]["step"] = "msg"
 
 # ================== RUN ==================
 async def main():
@@ -200,6 +209,3 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
-
-
-
