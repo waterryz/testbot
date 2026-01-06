@@ -83,22 +83,31 @@ async def start(message: types.Message):
     uid = message.from_user.id
     TEMP.pop(uid, None)
 
-    await message.answer(
-        TEXT["welcome"],
-        parse_mode="Markdown",
-        reply_markup=ReplyKeyboardRemove()
-    )
-
     if uid in ALLOWED_DRIVERS:
+        await message.answer(
+            "👋 Добро пожаловать в Prime Fusion!\n\n"
+            "Вы находитесь в рабочем пространстве арендодатора.\n"
+            "Используйте рабочее меню для связи с администрацией.",
+            reply_markup=ReplyKeyboardRemove()
+        )
         await message.answer(
             "🧰 Рабочее меню 👇",
             reply_markup=menu_allowed_user_kb()
         )
     else:
         await message.answer(
+            "👋 Добро пожаловать в Prime Fusion!\n\n"
+            "• Если вы *новый клиент* — пройдите анкету\n"
+            "• Если хотите *разместить свои автомобили на сайте* — "
+            "свяжитесь с нами через контакты",
+            parse_mode="Markdown",
+            reply_markup=ReplyKeyboardRemove()
+        )
+        await message.answer(
             "Выберите действие 👇",
             reply_markup=menu_new_user_kb()
         )
+
 
 # ================== ВОЗВРАТ В МЕНЮ ==================
 @dp.message(lambda m: m.text == "🔄 В главное меню")
@@ -209,3 +218,4 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
