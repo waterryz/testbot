@@ -6,7 +6,6 @@ from aiogram.types import (
     InlineKeyboardButton,
     ReplyKeyboardMarkup,
     KeyboardButton,
-    ReplyKeyboardRemove,
     WebAppInfo
 )
 
@@ -54,38 +53,29 @@ TEXT = {
 
         "consult_done": (
             "✅ Вопрос отправлен.\n"
-            "Оплата и дальнейшие шаги — через администратора он с вами свяжется."
+            "Оплата и дальнейшие шаги — через администратора."
         ),
-
-        "fail": "❌ К сожалению, на данный момент сервис вам не подходит.",
-        "success": "✅ Вы подходите под условия.\n\nПерейдите на сайт.",
-        "site": "🚗 Перейти на сайт",
 
         "work_intro": (
             "🧰 Рабочее меню\n\n"
-            "🛠 *Напоминание:* сервис нужно делать *раз в 2 месяца*.\n"
-            "После сервиса *желательно загрузить фото* "
-            "(чек / одометр / выполненные работы)."
+            "🛠 Сервис нужно делать *раз в 2 месяца*.\n"
+            "Фото можно прикрепить при наличии."
         ),
 
         "ask_car": "🚗 Введите номер автомобиля:",
-        "ask_text": "✍️ Введите сообщение (описание сервиса / комментарий):",
-        "ask_photo": (
-            "📸 Загрузите фото (если есть).\n"
-            "Можно отправить фото или просто `-`."
-        ),
-
+        "ask_text": "✍️ Введите сообщение:",
+        "ask_photo": "📸 Загрузите фото (если есть) или отправьте `-`.",
         "sent": "✅ Сообщение отправлено администрации.",
         "no_access": "⛔️ У вас нет доступа."
     },
 
     "en": {
-        "choose_lang": "🌐 Choose language / Выберите язык",
+        "choose_lang": "🌐 Choose language",
 
         "welcome_new": (
             "👋 Welcome to Prime Fusion!\n\n"
-            "• If you are a *new client* — fill out the form\n"
-            "• If you want to *list vehicles* — contact us"
+            "• New client — fill out the form\n"
+            "• Want to list vehicles — contact us"
         ),
         "welcome_allowed": (
             "👋 Welcome to Prime Fusion!\n\n"
@@ -100,39 +90,34 @@ TEXT = {
 
         "consult": (
             "💼 *Paid consultation*\n\n"
-            "Price: *$50 per question*\n\n"
-            "Company owner shares *personal experience*.\n"
-            "*No guarantee of results*."
+            "$50 per question.\n"
+            "Personal experience only.\n"
+            "No guarantees."
         ),
 
-        "consult_done": (
-            "✅ Question sent.\n"
-            "Payment and next steps via admin, he will contact you."
-        ),
-
-        "fail": "❌ Unfortunately, the service is not available.",
-        "success": "✅ You meet the requirements.\n\nVisit the website.",
-        "site": "🚗 Go to website",
+        "consult_done": "✅ Question sent. Admin will contact you.",
 
         "work_intro": (
             "🧰 Work menu\n\n"
-            "🛠 *Reminder:* service every *2 months*.\n"
-            "You may upload photos if available."
+            "🛠 Service every 2 months.\n"
+            "Photos optional."
         ),
 
         "ask_car": "🚗 Enter vehicle number:",
-        "ask_text": "✍️ Enter message (service description):",
-        "ask_photo": (
-            "📸 Upload photos if available.\n"
-            "You can send a photo or just `-`."
-        ),
-
-        "sent": "✅ Message sent to administration.",
-        "no_access": "⛔️ You have no access."
+        "ask_text": "✍️ Enter message:",
+        "ask_photo": "📸 Upload photo if available or send `-`.",
+        "sent": "✅ Message sent.",
+        "no_access": "⛔️ No access."
     }
 }
 
 # ================== КЛАВИАТУРЫ ==================
+def bottom_menu_kb(lang):
+    return ReplyKeyboardMarkup(
+        keyboard=[[KeyboardButton(text="🔄 В главное меню" if lang=="ru" else "🔄 Main menu")]],
+        resize_keyboard=True
+    )
+
 def lang_kb():
     return InlineKeyboardMarkup(inline_keyboard=[
         [
@@ -145,15 +130,13 @@ def menu_new_user_kb(lang):
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="📝 Анкета" if lang=="ru" else "📝 Form", callback_data="menu:form")],
         [InlineKeyboardButton(text="📞 Контакты" if lang=="ru" else "📞 Contacts", callback_data="menu:contacts")],
-        [InlineKeyboardButton(text="💼 Платная консультация" if lang=="ru" else "💼 Paid consultation",
-                              callback_data="menu:consult")]
+        [InlineKeyboardButton(text="💼 Консультация" if lang=="ru" else "💼 Consultation", callback_data="menu:consult")]
     ])
 
 def menu_allowed_user_kb(lang):
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="🧰 Рабочее меню" if lang=="ru" else "🧰 Work menu", callback_data="menu:work")],
-        [InlineKeyboardButton(text="💼 Консультация" if lang=="ru" else "💼 Consultation",
-                              callback_data="menu:consult")]
+        [InlineKeyboardButton(text="💼 Консультация" if lang=="ru" else "💼 Consultation", callback_data="menu:consult")]
     ])
 
 def consult_kb(lang):
@@ -163,25 +146,6 @@ def consult_kb(lang):
             callback_data="consult:start"
         )]
     ])
-
-def yes_no_kb(step, lang):
-    return InlineKeyboardMarkup(inline_keyboard=[
-        [
-            InlineKeyboardButton(text="✅ Да" if lang=="ru" else "✅ Yes", callback_data=f"{step}:yes"),
-            InlineKeyboardButton(text="❌ Нет" if lang=="ru" else "❌ No", callback_data=f"{step}:no")
-        ]
-    ])
-
-def site_kb(lang):
-    return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text=TEXT[lang]["site"], web_app=WebAppInfo(url=SITE_URL))]
-    ])
-
-def bottom_menu_kb(lang):
-    return ReplyKeyboardMarkup(
-        keyboard=[[KeyboardButton(text="🔄 В главное меню" if lang=="ru" else "🔄 Main menu")]],
-        resize_keyboard=True
-    )
 
 def get_lang(uid):
     return TEMP.get(uid, {}).get("lang", "ru")
@@ -239,12 +203,8 @@ async def consult_info(callback: types.CallbackQuery):
 @dp.callback_query(lambda c: c.data == "consult:start")
 async def consult_start(callback: types.CallbackQuery):
     uid = callback.from_user.id
-    TEMP.setdefault(uid, {})["step"] = "consult_question"
-    lang = get_lang(uid)
-
-    await callback.message.edit_text(
-        "✍️ Напишите ваш вопрос:" if lang=="ru" else "✍️ Write your question:"
-    )
+    TEMP.setdefault(uid, {})["step"] = "consult"
+    await callback.message.edit_text("✍️ Напишите ваш вопрос:")
 
 # ================== WORK MENU ==================
 @dp.callback_query(lambda c: c.data == "menu:work")
@@ -257,7 +217,7 @@ async def work_menu(callback: types.CallbackQuery):
         return
 
     TEMP[uid]["step"] = "work_car"
-    await callback.message.edit_text(TEXT[lang]["work_intro"], parse_mode="Markdown")
+    await callback.message.edit_text(TEXT[lang]["work_intro"])
     await callback.message.answer(TEXT[lang]["ask_car"], reply_markup=bottom_menu_kb(lang))
 
 # ================== HANDLE MESSAGES ==================
@@ -270,53 +230,39 @@ async def handle_messages(message: types.Message):
     lang = get_lang(uid)
     step = TEMP[uid].get("step")
 
-    # ---- CONSULT QUESTION ----
-    if step == "consult_question":
-        text = (
-            "💼 ПЛАТНАЯ КОНСУЛЬТАЦИЯ\n\n"
-            f"ID: {uid}\n"
-            f"Username: @{message.from_user.username or 'нет'}\n\n"
-            f"Вопрос:\n{message.text}"
+    if step == "consult":
+        await bot.send_message(
+            CHANNEL_ID,
+            f"💼 Консультация\nID: {uid}\n@{message.from_user.username}\n\n{message.text}"
         )
-        await bot.send_message(CHANNEL_ID, text)
         TEMP[uid]["step"] = None
-        await message.answer(TEXT[lang]["consult_done"])
+        await message.answer(TEXT[lang]["consult_done"], reply_markup=bottom_menu_kb(lang))
         return
 
-    # ---- WORK FLOW ----
     if uid not in ALLOWED_DRIVERS:
         return
 
     if step == "work_car":
-        TEMP[uid]["car"] = message.text.strip()
+        TEMP[uid]["car"] = message.text
         TEMP[uid]["step"] = "work_text"
-        await message.answer(TEXT[lang]["ask_text"])
+        await message.answer(TEXT[lang]["ask_text"], reply_markup=bottom_menu_kb(lang))
         return
 
     if step == "work_text":
-        TEMP[uid]["text"] = message.text.strip()
+        TEMP[uid]["text"] = message.text
         TEMP[uid]["step"] = "work_photo"
-        await message.answer(TEXT[lang]["ask_photo"], parse_mode="Markdown")
+        await message.answer(TEXT[lang]["ask_photo"], reply_markup=bottom_menu_kb(lang))
         return
 
     if step == "work_photo":
-        caption = (
-            "🛠 Сообщение\n\n"
-            f"Авто: {TEMP[uid]['car']}\n"
-            f"ID: {uid}\n"
-            f"Username: @{message.from_user.username or 'нет'}\n\n"
-            f"Комментарий:\n{TEMP[uid]['text']}"
-        )
-
+        caption = f"🚗 {TEMP[uid]['car']}\n\n{TEMP[uid]['text']}"
         if message.photo:
             await bot.send_photo(CHANNEL_ID, message.photo[-1].file_id, caption=caption)
-        elif message.document and (message.document.mime_type or "").startswith("image/"):
-            await bot.send_document(CHANNEL_ID, message.document.file_id, caption=caption)
         else:
             await bot.send_message(CHANNEL_ID, caption)
 
         TEMP[uid]["step"] = None
-        await message.answer(TEXT[lang]["sent"], reply_markup=ReplyKeyboardRemove())
+        await message.answer(TEXT[lang]["sent"], reply_markup=bottom_menu_kb(lang))
 
 # ================== RUN ==================
 async def main():
@@ -324,5 +270,3 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
-
-
