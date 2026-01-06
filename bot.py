@@ -267,16 +267,16 @@ async def handle_messages(message: types.Message):
         return
 
     if step == "work_photo":
-    car = TEMP[uid]["car"]
-    text_msg = TEMP[uid]["text"]
+        car = TEMP[uid]["car"]
+        text_msg = TEMP[uid]["text"]
 
-    caption = (
-        "🛠 Сообщение / Сервис\n\n"
-        f"Авто: {car}\n"
-        f"ID: {uid}\n"
-        f"Username: @{message.from_user.username or 'нет'}\n\n"
-        f"Комментарий:\n{text_msg}"
-    )
+        caption = (
+            "🛠 Сообщение / Сервис\n\n"
+            f"Авто: {car}\n"
+            f"ID: {uid}\n"
+            f"Username: @{message.from_user.username or 'нет'}\n\n"
+            f"Комментарий:\n{text_msg}"
+        )
 
     # ✅ ЕСЛИ ПРИСЛАЛИ ФОТО — ОТПРАВЛЯЕМ ФОТО
     if message.photo:
@@ -311,4 +311,5 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 
