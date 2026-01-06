@@ -267,29 +267,48 @@ async def handle_messages(message: types.Message):
         return
 
     if step == "work_photo":
-        if not message.photo and not (message.document and (message.document.mime_type or "").startswith("image/")):
-            await message.answer(TEXT[lang]["ask_photo"], parse_mode="Markdown")
-            return
+    car = TEMP[uid]["car"]
+    text_msg = TEMP[uid]["text"]
 
-        caption = (
-            "🛠 Сервис\n\n"
-            f"Авто: {TEMP[uid]['car']}\n"
-            f"ID: {uid}\n"
-            f"Username: @{message.from_user.username or 'нет'}\n\n"
-            f"Комментарий:\n{TEMP[uid]['text']}"
+    caption = (
+        "🛠 Сообщение / Сервис\n\n"
+        f"Авто: {car}\n"
+        f"ID: {uid}\n"
+        f"Username: @{message.from_user.username or 'нет'}\n\n"
+        f"Комментарий:\n{text_msg}"
+    )
+
+    # ✅ ЕСЛИ ПРИСЛАЛИ ФОТО — ОТПРАВЛЯЕМ ФОТО
+    if message.photo:
+        await bot.send_photo(
+            CHANNEL_ID,
+            message.photo[-1].file_id,
+            caption=caption
         )
-
-        if message.photo:
-            await bot.send_photo(CHANNEL_ID, message.photo[-1].file_id, caption=caption)
-        if message.document:
-            await bot.send_document(CHANNEL_ID, message.document.file_id, caption=caption)
-
         TEMP[uid]["step"] = None
         await message.answer(TEXT[lang]["sent"], reply_markup=ReplyKeyboardRemove())
+        return
 
+    if message.document and (message.document.mime_type or "").startswith("image/"):
+        await bot.send_document(
+            CHANNEL_ID,
+            message.document.file_id,
+            caption=caption
+        )
+        TEMP[uid]["step"] = None
+        await message.answer(TEXT[lang]["sent"], reply_markup=ReplyKeyboardRemove())
+        return
+
+    # ✅ ЕСЛИ ВВЕЛИ "-" ИЛИ ЛЮБОЙ ТЕКСТ — ФОТО НЕТ, ПРОСТО ОТПРАВЛЯЕМ ТЕКСТ
+    if message.text:
+        await bot.send_message(CHANNEL_ID, caption)
+        TEMP[uid]["step"] = None
+        await message.answer(TEXT[lang]["sent"], reply_markup=ReplyKeyboardRemove())
+        return
 # ================== RUN ==================
 async def main():
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
     asyncio.run(main())
+
