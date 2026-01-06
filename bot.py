@@ -56,6 +56,10 @@ TEXT = {
             "Оплата и дальнейшие шаги — через администратора."
         ),
 
+        "fail": "❌ К сожалению, на данный момент сервис вам не подходит.",
+        "success": "✅ Вы подходите под условия.\n\nПерейдите на сайт.",
+        "site": "🚗 Перейти на сайт",
+
         "work_intro": (
             "🧰 Рабочее меню\n\n"
             "🛠 Сервис нужно делать *раз в 2 месяца*.\n"
@@ -96,6 +100,10 @@ TEXT = {
         ),
 
         "consult_done": "✅ Question sent. Admin will contact you.",
+
+        "fail": "❌ Unfortunately, the service is not available.",
+        "success": "✅ You meet the requirements.\n\nVisit the website.",
+        "site": "🚗 Go to website",
 
         "work_intro": (
             "🧰 Work menu\n\n"
@@ -145,6 +153,19 @@ def consult_kb(lang):
             text="✍️ Написать вопрос" if lang=="ru" else "✍️ Write question",
             callback_data="consult:start"
         )]
+    ])
+
+def yes_no_kb(step, lang):
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="✅ Да" if lang=="ru" else "✅ Yes", callback_data=f"{step}:yes"),
+            InlineKeyboardButton(text="❌ Нет" if lang=="ru" else "❌ No", callback_data=f"{step}:no")
+        ]
+    ])
+
+def site_kb(lang):
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text=TEXT[lang]["site"], web_app=WebAppInfo(url=SITE_URL))]
     ])
 
 def get_lang(uid):
@@ -205,6 +226,56 @@ async def consult_start(callback: types.CallbackQuery):
     uid = callback.from_user.id
     TEMP.setdefault(uid, {})["step"] = "consult"
     await callback.message.edit_text("✍️ Напишите ваш вопрос:")
+
+# ================== АНКЕТА ==================
+@dp.callback_query(lambda c: c.data == "menu:form")
+async def form_start(callback: types.CallbackQuery):
+    lang = get_lang(callback.from_user.id)
+    await callback.message.edit_text(
+        "Есть ли у вас TLC-лицензия?" if lang=="ru" else "Do you have a TLC license?",
+        reply_markup=yes_no_kb("tlc", lang)
+    )
+
+@dp.callback_query(lambda c: c.data.startswith("tlc"))
+async def q_tlc(callback: types.CallbackQuery):
+    lang = get_lang(callback.from_user.id)
+    if callback.data.endswith("no"):
+        await callback.message.edit_text(TEXT[lang]["fail"])
+        return
+    await callback.message.edit_text(
+        "Стаж вождения в США 1+ год?" if lang=="ru" else "1+ year driving experience?",
+        reply_markup=yes_no_kb("exp", lang)
+    )
+
+@dp.callback_query(lambda c: c.data.startswith("exp"))
+async def q_exp(callback: types.CallbackQuery):
+    lang = get_lang(callback.from_user.id)
+    if callback.data.endswith("no"):
+        await callback.message.edit_text(TEXT[lang]["fail"])
+        return
+    await callback.message.edit_text(
+        "Вы ищете автомобиль в аренду?" if lang=="ru" else "Looking to rent a vehicle?",
+        reply_markup=yes_no_kb("rent", lang)
+    )
+
+@dp.callback_query(lambda c: c.data.startswith("rent"))
+async def q_rent(callback: types.CallbackQuery):
+    lang = get_lang(callback.from_user.id)
+    if callback.data.endswith("no"):
+        await callback.message.edit_text(TEXT[lang]["fail"])
+        return
+    await callback.message.edit_text(
+        "Подходит ли Toyota Sienna Hybrid?" if lang=="ru" else "Is Toyota Sienna Hybrid suitable?",
+        reply_markup=yes_no_kb("car", lang)
+    )
+
+@dp.callback_query(lambda c: c.data.startswith("car"))
+async def q_car(callback: types.CallbackQuery):
+    lang = get_lang(callback.from_user.id)
+    if callback.data.endswith("no"):
+        await callback.message.edit_text(TEXT[lang]["fail"])
+        return
+    await callback.message.edit_text(TEXT[lang]["success"], reply_markup=site_kb(lang))
 
 # ================== WORK MENU ==================
 @dp.callback_query(lambda c: c.data == "menu:work")
