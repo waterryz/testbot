@@ -334,14 +334,47 @@ async def handle_messages(message: types.Message):
         return
 
     if step == "work_photo":
-        caption = f"🚗 {TEMP[uid]['car']}\n\n{TEMP[uid]['text']}"
-        if message.photo:
-            await bot.send_photo(CHANNEL_ID, message.photo[-1].file_id, caption=caption)
-        else:
-            await bot.send_message(CHANNEL_ID, caption)
+        caption = (
+            "🛠 Service report\n\n"
+            f"Car: {TEMP[uid]['car']}\n"
+            f"ID: {uid}\n"
+            f"@{message.from_user.username or 'no_username'}\n\n"
+            f"{TEMP[uid]['text']}"
+        )
 
+    # ✅ Фото
+        if message.photo:
+            await bot.send_photo(
+                CHANNEL_ID,
+                message.photo[-1].file_id,
+                caption=caption
+            )
+
+    # ✅ Фото как файл
+        elif message.document and (message.document.mime_type or "").startswith("image/"):
+            await bot.send_document(
+                CHANNEL_ID,
+                message.document.file_id,
+                caption=caption
+            )
+
+    # ❌ ВСЁ ОСТАЛЬНОЕ — ЗАПРЕЩЕНО
+        else:
+            await message.answer(
+                "❗️Фото обязательно. Без фото отправка невозможна.\n"
+                if lang == "ru" else
+                    "❗️Photo is required. Submission without photo is not allowed.",
+                reply_markup=bottom_menu_kb(lang)
+            )
+            return  # ⛔️ НЕ ВЫХОДИМ ИЗ ШАГА
+
+    # ✅ Фото получено — завершаем
         TEMP[uid]["step"] = None
-        await message.answer(TEXT[lang]["sent"], reply_markup=bottom_menu_kb(lang))
+        await message.answer(
+            TEXT[lang]["sent"],
+            reply_markup=bottom_menu_kb(lang)
+        )
+
 
 # ================== RUN ==================
 async def main():
@@ -349,3 +382,4 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
