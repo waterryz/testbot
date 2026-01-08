@@ -107,7 +107,7 @@ TEXT = {
 
         "work_intro": (
             "🧰 Work menu\n\n"
-            "🛠 Service for every 7000 miles.\n"
+            "🛠 Service every 7000 miles.\n"
             "Photos optional."
         ),
 
@@ -122,7 +122,7 @@ TEXT = {
 # ================== КЛАВИАТУРЫ ==================
 def bottom_menu_kb(lang):
     return ReplyKeyboardMarkup(
-        keyboard=[[KeyboardButton(text="🔄 В главное меню" if lang=="ru" else "🔄 Main menu")]],
+        keyboard=[[KeyboardButton(text="🔄 В главное меню" if lang == "ru" else "🔄 Main menu")]],
         resize_keyboard=True
     )
 
@@ -171,11 +171,15 @@ def site_kb(lang):
 def get_lang(uid):
     return TEMP.get(uid, {}).get("lang", "ru")
 
-# ================== START ==================
+# ================== START (FIXED) ==================
 @dp.message(CommandStart())
 async def start(message: types.Message):
-    TEMP[message.from_user.id] = {}
-    await message.answer(TEXT["ru"]["choose_lang"], reply_markup=lang_kb())
+    uid = message.from_user.id
+    TEMP.setdefault(uid, {})   # ❗️НЕ стираем lang
+    await message.answer(
+        TEXT[get_lang(uid)]["choose_lang"],
+        reply_markup=lang_kb()
+    )
 
 # ================== LANGUAGE ==================
 @dp.callback_query(lambda c: c.data.startswith("lang:"))
@@ -224,8 +228,12 @@ async def consult_info(callback: types.CallbackQuery):
 @dp.callback_query(lambda c: c.data == "consult:start")
 async def consult_start(callback: types.CallbackQuery):
     uid = callback.from_user.id
+    lang = get_lang(uid)
     TEMP.setdefault(uid, {})["step"] = "consult"
-    await callback.message.edit_text("✍️ Напишите ваш вопрос:")
+    await callback.message.edit_text(
+        "✍️ Напишите ваш вопрос:" if lang=="ru"
+        else "✍️ Write your question:"
+    )
 
 # ================== АНКЕТА ==================
 @dp.callback_query(lambda c: c.data == "menu:form")
@@ -304,7 +312,7 @@ async def handle_messages(message: types.Message):
     if step == "consult":
         await bot.send_message(
             CHANNEL_ID,
-            f"💼 Консультация\nID: {uid}\n@{message.from_user.username}\n\n{message.text}"
+            f"💼 Consultation\nID: {uid}\n@{message.from_user.username}\n\n{message.text}"
         )
         TEMP[uid]["step"] = None
         await message.answer(TEXT[lang]["consult_done"], reply_markup=bottom_menu_kb(lang))
@@ -341,4 +349,3 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
-
