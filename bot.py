@@ -68,7 +68,7 @@ TEXT = {
 
         "ask_car": "🚗 Введите номер автомобиля:",
         "ask_text": "✍️ Введите сообщение:",
-        "ask_photo": "📸 Загрузите фото (если есть) или отправьте `-`.",
+        "ask_photo": "📸 Загрузите фото.",
         "sent": "✅ Сообщение отправлено администрации.",
         "no_access": "⛔️ У вас нет доступа."
     },
@@ -113,7 +113,7 @@ TEXT = {
 
         "ask_car": "🚗 Enter vehicle number:",
         "ask_text": "✍️ Enter message:",
-        "ask_photo": "📸 Upload photo if available or send `-`.",
+        "ask_photo": "📸 Upload photo.",
         "sent": "✅ Message sent.",
         "no_access": "⛔️ No access."
     }
@@ -385,6 +385,7 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
