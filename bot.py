@@ -201,7 +201,10 @@ async def set_lang(callback: types.CallbackQuery):
 async def back_to_menu(message: types.Message):
     uid = message.from_user.id
     lang = get_lang(uid)
-    TEMP[uid] = {"lang": lang}
+    TEMP.setdefault(uid, {})
+    TEMP[uid]["lang"] = lang
+    TEMP[uid].pop("step", None)
+
 
     if uid in ALLOWED_DRIVERS:
         await message.answer(TEXT[lang]["welcome_allowed"],
@@ -302,6 +305,8 @@ async def work_menu(callback: types.CallbackQuery):
 # ================== HANDLE MESSAGES ==================
 @dp.message()
 async def handle_messages(message: types.Message):
+    if step is None:
+        return
     uid = message.from_user.id
     if uid not in TEMP:
         return
@@ -382,4 +387,5 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 
