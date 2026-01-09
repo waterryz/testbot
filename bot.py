@@ -305,8 +305,6 @@ async def work_menu(callback: types.CallbackQuery):
 # ================== HANDLE MESSAGES ==================
 @dp.message()
 async def handle_messages(message: types.Message):
-    if step is None:
-        return
     uid = message.from_user.id
     if uid not in TEMP:
         return
@@ -387,5 +385,6 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
