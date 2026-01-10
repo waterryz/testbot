@@ -62,9 +62,10 @@ TEXT = {
 
         "work_intro": (
             "🧰 Рабочее меню\n\n"
-            "🛠 Сервис нужно делать раз в 7000 миль.\n"
-            "Фото можно прикрепить при наличии."
+            "📸 Фото обязательно.\n"
+            "✍️ После фото потребуется комментарий."
         ),
+
 
         "ask_car": "🚗 Введите номер автомобиля:",
         "ask_text": "✍️ Введите сообщение:",
@@ -107,9 +108,10 @@ TEXT = {
 
         "work_intro": (
             "🧰 Work menu\n\n"
-            "🛠 Service every 7000 miles.\n"
-            "Photos optional."
+            "📸 Photo is required.\n"
+            "✍️ Comment after photo."
         ),
+
 
         "ask_car": "🚗 Enter vehicle number:",
         "ask_text": "✍️ Enter message:",
@@ -120,6 +122,22 @@ TEXT = {
 }
 
 # ================== КЛАВИАТУРЫ ==================
+def work_menu_kb(lang):
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(
+            text="🧾 DMV инспекция" if lang=="ru" else "🧾 DMV inspection",
+            callback_data="work:dmv"
+        )],
+        [InlineKeyboardButton(
+            text="🛠 Сервис" if lang=="ru" else "🛠 Service",
+            callback_data="work:service"
+        )],
+        [InlineKeyboardButton(
+            text="📞 Связаться с администратором" if lang=="ru" else "📞 Contact admin",
+            callback_data="work:admin"
+        )],
+    ])
+
 def bottom_menu_kb(lang):
     return ReplyKeyboardMarkup(
         keyboard=[[KeyboardButton(text="🔄 В главное меню" if lang == "ru" else "🔄 Main menu")]],
@@ -298,9 +316,38 @@ async def work_menu(callback: types.CallbackQuery):
         await callback.message.edit_text(TEXT[lang]["no_access"])
         return
 
-    TEMP[uid]["step"] = "work_car"
-    await callback.message.edit_text(TEXT[lang]["work_intro"])
-    await callback.message.answer(TEXT[lang]["ask_car"], reply_markup=bottom_menu_kb(lang))
+    TEMP[uid].pop("step", None)
+    await callback.message.edit_text(
+        TEXT[lang]["work_intro"],
+        reply_markup=work_menu_kb(lang)
+    )
+@dp.callback_query(lambda c: c.data.startswith("work:"))
+async def work_start(callback: types.CallbackQuery):
+    uid = callback.from_user.id
+    lang = get_lang(uid)
+
+    if uid not in ALLOWED_DRIVERS:
+        await callback.message.edit_text(TEXT[lang]["no_access"])
+        return
+
+    action = callback.data.split(":")[1]
+
+    if action == "admin":
+        await callback.message.edit_text(TEXT[lang]["contacts"])
+        return
+
+    TEMP[uid]["work_type"] = action
+    TEMP[uid]["step"] = "work_photo"
+
+    text = (
+        "📸 Скиньте фото DMV-инспекции" if action=="dmv" and lang=="ru" else
+        "📸 Send DMV inspection photo" if action=="dmv" else
+        "📸 Скиньте фото сервиса" if lang=="ru" else
+        "📸 Send service photo"
+    )
+
+    await callback.message.edit_text(text)
+
 
 # ================== HANDLE MESSAGES ==================
 @dp.message()
@@ -312,71 +359,99 @@ async def handle_messages(message: types.Message):
     lang = get_lang(uid)
     step = TEMP[uid].get("step")
 
+    # ================== CONSULT ==================
     if step == "consult":
         await bot.send_message(
             CHANNEL_ID,
-            f"💼 Consultation\nID: {uid}\n@{message.from_user.username}\n\n{message.text}"
+            f"💼 Consultation\n"
+            f"ID: {uid}\n"
+            f"@{message.from_user.username or 'no_username'}\n\n"
+            f"{message.text}"
         )
         TEMP[uid]["step"] = None
-        await message.answer(TEXT[lang]["consult_done"], reply_markup=bottom_menu_kb(lang))
+        await message.answer(
+            TEXT[lang]["consult_done"],
+            reply_markup=bottom_menu_kb(lang)
+        )
         return
 
+    # ================== ACCESS CHECK ==================
     if uid not in ALLOWED_DRIVERS:
         return
 
-    if step == "work_car":
-        TEMP[uid]["car"] = message.text
-        TEMP[uid]["step"] = "work_text"
-        await message.answer(TEXT[lang]["ask_text"], reply_markup=bottom_menu_kb(lang))
-        return
-
-    if step == "work_text":
-        TEMP[uid]["text"] = message.text
-        TEMP[uid]["step"] = "work_photo"
-        await message.answer(TEXT[lang]["ask_photo"], reply_markup=bottom_menu_kb(lang))
-        return
-
+    # ================== WORK PHOTO (REQUIRED) ==================
     if step == "work_photo":
-        caption = (
-            "🛠 Service report\n\n"
-            f"Car: {TEMP[uid]['car']}\n"
-            f"ID: {uid}\n"
-            f"@{message.from_user.username or 'no_username'}\n\n"
-            f"{TEMP[uid]['text']}"
-        )
-
-    # ✅ Фото
-        if message.photo:
-            await bot.send_photo(
-                CHANNEL_ID,
-                message.photo[-1].file_id,
-                caption=caption
-            )
-
-    # ✅ Фото как файл
-        elif message.document and (message.document.mime_type or "").startswith("image/"):
-            await bot.send_document(
-                CHANNEL_ID,
-                message.document.file_id,
-                caption=caption
-            )
-
-    # ❌ ВСЁ ОСТАЛЬНОЕ — ЗАПРЕЩЕНО
-        else:
+        # ❌ не фото
+        if not (
+            message.photo or
+            (message.document and (message.document.mime_type or "").startswith("image/"))
+        ):
             await message.answer(
-                "❗️Фото обязательно. Без фото отправка невозможна.\n"
+                "❗️Фото обязательно. Без фото отправка невозможна."
                 if lang == "ru" else
-                    "❗️Photo is required. Submission without photo is not allowed.",
+                "❗️Photo is required. Submission without photo is not allowed.",
                 reply_markup=bottom_menu_kb(lang)
             )
-            return  # ⛔️ НЕ ВЫХОДИМ ИЗ ШАГА
+            return
 
-    # ✅ Фото получено — завершаем
-        TEMP[uid]["step"] = None
+        # ✅ сохраняем фото
+        TEMP[uid]["photo"] = (
+            message.photo[-1].file_id
+            if message.photo else
+            message.document.file_id
+        )
+
+        TEMP[uid]["step"] = "work_comment"
+
+        await message.answer(
+            "✍️ Комментарий к DMV-инспекции:"
+            if TEMP[uid]["work_type"] == "dmv" and lang == "ru" else
+            "✍️ Comment for DMV inspection:"
+            if TEMP[uid]["work_type"] == "dmv" else
+            "✍️ Комментарий к сервису:"
+            if lang == "ru" else
+            "✍️ Comment for service:"
+        )
+        return
+
+    # ================== WORK COMMENT ==================
+    if step == "work_comment":
+        # 🔒 защита от битой сессии
+        if "work_type" not in TEMP[uid] or "photo" not in TEMP[uid]:
+            TEMP[uid].pop("step", None)
+            await message.answer(
+                "⚠️ Сессия устарела. Начните заново."
+                if lang == "ru" else
+                "⚠️ Session expired. Please start again.",
+                reply_markup=bottom_menu_kb(lang)
+            )
+            return
+
+        caption = (
+            f"🛠 {TEMP[uid]['work_type'].upper()}\n"
+            f"ID: {uid}\n"
+            f"@{message.from_user.username or 'no_username'}\n\n"
+            f"{message.text}"
+        )
+
+        await bot.send_photo(
+            CHANNEL_ID,
+            TEMP[uid]["photo"],
+            caption=caption
+        )
+
+        # очищаем состояние (язык сохраняем)
+        TEMP[uid].pop("step", None)
+        TEMP[uid].pop("work_type", None)
+        TEMP[uid].pop("photo", None)
+
         await message.answer(
             TEXT[lang]["sent"],
             reply_markup=bottom_menu_kb(lang)
         )
+        return
+
+
 
 
 # ================== RUN ==================
@@ -385,6 +460,7 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
