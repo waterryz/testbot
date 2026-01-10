@@ -42,6 +42,7 @@ TEXT = {
             "📞 Контакты для сотрудничества:\n\n"
             "Telegram: @primefusion_admin\n"
             "Email: info@primefusioncars.com"
+            "Администратор: @wateryz"
         ),
 
         "consult": (
@@ -91,6 +92,7 @@ TEXT = {
             "📞 Contacts:\n\n"
             "Telegram: @primefusion_admin\n"
             "Email: info@primefusioncars.com"
+            "Administrator: @wateryz"
         ),
 
         "consult": (
@@ -460,6 +462,7 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
