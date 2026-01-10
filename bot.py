@@ -87,8 +87,9 @@ TEXT = {
 
         "welcome_new": (
             "👋 Добро пожаловать в Prime Fusion!\n\n"
-            "• Если вы *новый клиент* — заполните анкету\n"
-            "• Если хотите *разместить свои автомобили на сайте* — свяжитесь с нами через контакты"
+            "• Если вы *новый клиент* — нажмите 'Анкета' и заполните ее\n"
+            "• Если хотите *разместить свои автомобили на сайте* — нажмите 'Контакты' и свяжитесь с нами\n"
+            "• Для получения платной консультации - нажмите консультация"
         ),
         "welcome_allowed": (
             "👋 Добро пожаловать в Prime Fusion!\n\n"
@@ -189,9 +190,11 @@ TEXT = {
 
         "welcome_new": (
             "👋 Welcome to Prime Fusion!\n\n"
-            "• New client — fill out the form\n"
-            "• Want to list vehicles — contact us"
+            "• If you are a *new client* — tap 'Application' and fill out the form\n"
+            "• If you want to *list your vehicles on our website* — tap 'Contacts' and get in touch with us\n"
+            "• To receive a paid consultation — tap 'Consultation'"
         ),
+
         "welcome_allowed": (
             "👋 Welcome to Prime Fusion!\n\n"
             "You are in the landlord workspace."
@@ -611,6 +614,7 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
