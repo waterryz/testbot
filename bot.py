@@ -97,7 +97,7 @@ TEXT = {
         ),
 
         "contacts": (
-            "📞 Контакты для сотрудничества:\n\n"
+            "📞 Контакты:\n\n"
             "Telegram: @primefusion_admin\n"
             "Email: info@primefusioncars.com\n"
             "Администратор: @wateryz"
@@ -122,7 +122,7 @@ TEXT = {
         "work_intro": (
             "🧰 Рабочее меню\n\n"
             "📸 Фото обязательно.\n"
-            "✍️ После фото потребуется комментарий."
+            "✍️ После фото по желанию можно оставить комментарий или написать '-'."
         ),
         
 
@@ -223,7 +223,7 @@ TEXT = {
         "work_intro": (
             "🧰 Work menu\n\n"
             "📸 Photo is required.\n"
-            "✍️ Comment after photo."
+            "✍️ You can comment after photo or type '-'."
         ),
 
 
@@ -243,11 +243,11 @@ def work_menu_kb(lang):
             callback_data="work:dmv"
         )],
         [InlineKeyboardButton(
-            text="🛠 Сервис" if lang=="ru" else "🛠 Service",
+            text="🛠 Сервис и ремонт" if lang=="ru" else "🛠 Service",
             callback_data="work:service"
         )],
         [InlineKeyboardButton(
-            text="ℹ️ Информация" if lang=="ru" else "ℹ️ Information",
+            text="ℹ️ Правила и инструкции" if lang=="ru" else "ℹ️Rules and instructions",
             callback_data="work:info"
         )],
         [InlineKeyboardButton(
@@ -540,9 +540,9 @@ async def handle_messages(message: types.Message):
             if TEMP[uid]["work_type"] == "dmv" and lang == "ru" else
             "📸 Send DMV inspection photo"
             if TEMP[uid]["work_type"] == "dmv" else
-            "📸 Скиньте фото сервиса"
+            "📸 Загрузите фото ресита"
             if lang == "ru" else
-            "📸 Send service photo"
+            "📸 Upload a photo of the receipt"
         )
         return
 
@@ -627,6 +627,7 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
