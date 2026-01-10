@@ -14,7 +14,7 @@ BOT_TOKEN = "8550400671:AAHZdPJcWi_NtkurCHGxUgmRsQKMTu3826g"
 CHANNEL_ID = -1003580316890
 SITE_URL = "https://www.primefusioncars.com/"
 
-ALLOWED_DRIVERS = {5348697217, 547004364}
+ALLOWED_DRIVERS = {5348697217, 5470043640}
 
 bot = Bot(BOT_TOKEN)
 dp = Dispatcher()
@@ -460,6 +460,7 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
