@@ -410,7 +410,7 @@ async def q_rent(callback: types.CallbackQuery):
         await callback.message.edit_text(TEXT[lang]["fail"])
         return
     await callback.message.edit_text(
-        "Подходит ли Toyota Sienna Hybrid?" if lang=="ru" else "Is Toyota Sienna Hybrid suitable?",
+        "Подходит ли Toyota Sienna Hybrid (WAV)?" if lang=="ru" else "Is Toyota Sienna Hybrid (WAV) suitable?",
         reply_markup=yes_no_kb("car", lang)
     )
 
@@ -611,6 +611,7 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
