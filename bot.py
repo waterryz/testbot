@@ -41,7 +41,7 @@ TEXT = {
         "contacts": (
             "📞 Контакты для сотрудничества:\n\n"
             "Telegram: @primefusion_admin\n"
-            "Email: info@primefusioncars.com"
+            "Email: info@primefusioncars.com\n"
             "Администратор: @wateryz"
         ),
 
@@ -91,7 +91,7 @@ TEXT = {
         "contacts": (
             "📞 Contacts:\n\n"
             "Telegram: @primefusion_admin\n"
-            "Email: info@primefusioncars.com"
+            "Email: info@primefusioncars.com\n"
             "Administrator: @wateryz"
         ),
 
@@ -334,21 +334,21 @@ async def work_start(callback: types.CallbackQuery):
 
     action = callback.data.split(":")[1]
 
+    # 📞 Связь с администратором
     if action == "admin":
         await callback.message.edit_text(TEXT[lang]["contacts"])
         return
 
+    # 🧾 DMV или 🛠 Service
     TEMP[uid]["work_type"] = action
-    TEMP[uid]["step"] = "work_photo"
+    TEMP[uid]["step"] = "work_car"
 
-    text = (
-        "📸 Скиньте фото DMV-инспекции" if action=="dmv" and lang=="ru" else
-        "📸 Send DMV inspection photo" if action=="dmv" else
-        "📸 Скиньте фото сервиса" if lang=="ru" else
-        "📸 Send service photo"
+    await callback.message.edit_text(
+        "🚗 Введите номер автомобиля:"
+        if lang == "ru" else
+        "🚗 Enter vehicle number:"
     )
 
-    await callback.message.edit_text(text)
 
 
 # ================== HANDLE MESSAGES ==================
@@ -381,9 +381,34 @@ async def handle_messages(message: types.Message):
     if uid not in ALLOWED_DRIVERS:
         return
 
+    # ================== WORK CAR ==================
+    if step == "work_car":
+        car = message.text.strip()
+        if not car:
+            await message.answer(
+                "❗️Введите номер автомобиля."
+                if lang == "ru" else
+                "❗️Please enter vehicle number.",
+                reply_markup=bottom_menu_kb(lang)
+            )
+            return
+
+        TEMP[uid]["car"] = car
+        TEMP[uid]["step"] = "work_photo"
+
+        await message.answer(
+            "📸 Скиньте фото DMV-инспекции"
+            if TEMP[uid]["work_type"] == "dmv" and lang == "ru" else
+            "📸 Send DMV inspection photo"
+            if TEMP[uid]["work_type"] == "dmv" else
+            "📸 Скиньте фото сервиса"
+            if lang == "ru" else
+            "📸 Send service photo"
+        )
+        return
+
     # ================== WORK PHOTO (REQUIRED) ==================
     if step == "work_photo":
-        # ❌ не фото
         if not (
             message.photo or
             (message.document and (message.document.mime_type or "").startswith("image/"))
@@ -396,13 +421,11 @@ async def handle_messages(message: types.Message):
             )
             return
 
-        # ✅ сохраняем фото
         TEMP[uid]["photo"] = (
             message.photo[-1].file_id
             if message.photo else
             message.document.file_id
         )
-
         TEMP[uid]["step"] = "work_comment"
 
         await message.answer(
@@ -418,8 +441,8 @@ async def handle_messages(message: types.Message):
 
     # ================== WORK COMMENT ==================
     if step == "work_comment":
-        # 🔒 защита от битой сессии
-        if "work_type" not in TEMP[uid] or "photo" not in TEMP[uid]:
+        # защита от битой сессии
+        if "work_type" not in TEMP[uid] or "photo" not in TEMP[uid] or "car" not in TEMP[uid]:
             TEMP[uid].pop("step", None)
             await message.answer(
                 "⚠️ Сессия устарела. Начните заново."
@@ -431,6 +454,7 @@ async def handle_messages(message: types.Message):
 
         caption = (
             f"🛠 {TEMP[uid]['work_type'].upper()}\n"
+            f"🚗 Car: {TEMP[uid]['car']}\n"
             f"ID: {uid}\n"
             f"@{message.from_user.username or 'no_username'}\n\n"
             f"{message.text}"
@@ -446,6 +470,7 @@ async def handle_messages(message: types.Message):
         TEMP[uid].pop("step", None)
         TEMP[uid].pop("work_type", None)
         TEMP[uid].pop("photo", None)
+        TEMP[uid].pop("car", None)
 
         await message.answer(
             TEXT[lang]["sent"],
@@ -456,12 +481,14 @@ async def handle_messages(message: types.Message):
 
 
 
+
 # ================== RUN ==================
 async def main():
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
