@@ -447,7 +447,15 @@ async def work_start(callback: types.CallbackQuery):
 
     action = callback.data.split(":")[1]
 
-    # 📞 Связь с администратором
+    # ℹ️ ИНФОРМАЦИЯ
+    if action == "info":
+        await callback.message.edit_text(
+            TEXT[lang]["work_info"],
+            parse_mode="Markdown"
+        )
+        return
+
+    # 📞 СВЯЗЬ С АДМИНИСТРАТОРОМ
     if action == "admin":
         await callback.message.edit_text(TEXT[lang]["contacts"])
         return
@@ -461,6 +469,7 @@ async def work_start(callback: types.CallbackQuery):
         if lang == "ru" else
         "🚗 Enter vehicle number:"
     )
+
 
 
 
@@ -601,6 +610,7 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
