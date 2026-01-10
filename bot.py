@@ -326,12 +326,25 @@ async def set_lang(callback: types.CallbackQuery):
     TEMP.setdefault(uid, {})["lang"] = lang
 
     if uid in ALLOWED_DRIVERS:
-        await callback.message.edit_text(TEXT[lang]["welcome_allowed"],
-                                         reply_markup=menu_allowed_user_kb(lang))
+        await callback.message.edit_text(
+            TEXT[lang]["welcome_allowed"],
+            reply_markup=menu_allowed_user_kb(lang)
+        )
     else:
-        await callback.message.edit_text(TEXT[lang]["welcome_new"],
-                                         parse_mode="Markdown",
-                                         reply_markup=menu_new_user_kb(lang))
+        await callback.message.edit_text(
+            TEXT[lang]["welcome_new"],
+            parse_mode="Markdown",
+            reply_markup=menu_new_user_kb(lang)
+        )
+
+    # 🔄 КНОПКА В ГЛАВНОЕ МЕНЮ — НАВСЕГДА
+    await callback.message.answer(
+        "⬇️ Используйте кнопку ниже для возврата в главное меню"
+        if lang == "ru" else
+        "⬇️ Use the button below to return to the main menu",
+        reply_markup=bottom_menu_kb(lang)
+    )
+
 
 # ================== BACK TO MENU ==================
 @dp.message(lambda m: m.text in ("🔄 В главное меню", "🔄 Main menu"))
@@ -614,6 +627,7 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
