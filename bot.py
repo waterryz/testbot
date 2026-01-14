@@ -1,4 +1,5 @@
 import asyncio
+import os
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters import CommandStart
 from aiogram.types import (
@@ -10,7 +11,7 @@ from aiogram.types import (
 )
 
 # ================== НАСТРОЙКИ ==================
-BOT_TOKEN = "8550400671:AAHZdPJcWi_NtkurCHGxUgmRsQKMTu3826g"
+BOT_TOKEN = os.getenv("BOT_TOKEN")
 CHANNEL_ID = -1003580316890
 SITE_URL = "https://www.primefusioncars.com/"
 
