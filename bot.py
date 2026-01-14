@@ -73,12 +73,10 @@ TEXT = {
             "• Каждую замену масла — ротация колёс\n"
             "• Давление в шинах: 35 psi\n"
             "• Преждевременный износ шин — ответственность арендатора\n\n"
-            "📸 После каждого ТО отправляйте в WhatsApp:\n"
-            "• фото одометра\n\n"
             "*DMV-инспекция:*\n"
             "Проходит раз в 4 месяца — ответственность арендатора.\n"
             "Uber напоминает, Lyft — нет.\n"
-            "В день инспекции — фото авто с 4 сторон.\n\n"
+
         ),
         "welcome_new": (
             "👋 Добро пожаловать в Prime Fusion!\n\n"
@@ -114,7 +112,7 @@ TEXT = {
         "ask_car": "🚗 Введите номер автомобиля:",
         "ask_text": "✍️ Введите сообщение:",
         "ask_photo": "📸 Загрузите фото.",
-        "ask_photo_dmv": "📸 Скиньте фото DMV-инспекции",
+        "ask_photo_dmv": "📸 Загрузите фото DMV-инспекции и машину с 4 сторон",
         "ask_photo_service": "📸 Загрузите фото ресита",
         "sent": "✅ Сообщение отправлено администрации.",
         "no_access": "⛔️ У вас нет доступа."
@@ -153,12 +151,9 @@ TEXT = {
             "• Every oil change — tire rotation\n"
             "• Tire pressure: 35 psi\n"
             "• Tire wear is tenant responsibility\n\n"
-            "📸 After service send to WhatsApp:\n"
-            "• odometer photo\n\n"
             "*DMV inspection:*\n"
             "Required every 4 months.\n"
             "Uber reminds, Lyft does not.\n"
-            "Inspection day — photos from all 4 sides.\n\n"
         ),
         "welcome_new": (
             "👋 Welcome to Prime Fusion!\n\n"
@@ -191,7 +186,7 @@ TEXT = {
         "ask_car": "🚗 Enter vehicle number:",
         "ask_text": "✍️ Enter message:",
         "ask_photo": "📸 Upload photo.",
-        "ask_photo_dmv": "📸 Send DMV inspection photo",
+        "ask_photo_dmv": "📸 Upload DMV inspection photo and vehicle photos from all 4 sides.",
         "ask_photo_service": "📸 Upload a photo of the receipt",
         "sent": "✅ Message sent.",
         "no_access": "⛔️ No access."
@@ -459,4 +454,5 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 
