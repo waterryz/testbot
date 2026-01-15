@@ -113,8 +113,19 @@ TEXT = {
         "ask_car": "🚗 Введите номер автомобиля:",
         "ask_text": "✍️ Введите сообщение:",
         "ask_photo": "📸 Загрузите фото.",
-        "ask_photo_dmv": "📸 Загрузите фото стикера DMV-инспекции и машину с 4 сторон и фото одометра",
-        "ask_photo_service": "📸 Загрузите фото ресит и фото одометра",
+        "ask_photo_dmv": (
+            "📸 Загрузите:\n"
+            "• фото стикера DMV\n"
+            "• авто с 4 сторон\n"
+            "• фото одометра"
+        ),
+        "ask_photo_service": (
+            "📸 Загрузите фото:\n"
+            "• ресита\n"
+            "• одометра"
+        ),
+        "enter_comment": "✍️ Теперь введите комментарий:",
+        "session_expired": "⚠️ Сессия устарела. Начните заново.",
         "sent": "✅ Сообщение отправлено администрации.",
         "no_access": "⛔️ У вас нет доступа."
     },
@@ -187,8 +198,20 @@ TEXT = {
         "ask_car": "🚗 Enter vehicle number:",
         "ask_text": "✍️ Enter message:",
         "ask_photo": "📸 Upload photo.",
-        "ask_photo_dmv": "📸 Upload a photo of the DMV inspection sticker and the car from all four sides, along with a photo of the odometer.",
-        "ask_photo_service": "📸 Upload a photo of the receipt with the photo of the odometr",
+        "ask_photo_dmv": (
+            "📸 Upload:\n"
+            "• DMV sticker\n"
+            "• car from all sides\n"
+            "• odometer"
+        ),
+
+        "ask_photo_service": (
+            "📸 Upload:\n"
+            "• receipt\n"
+            "• odometer"
+        ),
+        "photo_required": "❗️ Photo is required. Please upload an image.",
+        "enter_comment": "✍️ Now enter a comment:",
         "sent": "✅ Message sent.",
         "no_access": "⛔️ No access."
     }
@@ -414,19 +437,20 @@ async def handle_messages(message: types.Message):
     # Шаг с фото
     if step == "work_photo":
         if not (message.photo or (message.document and (message.document.mime_type or "").startswith("image/"))):
-            await message.answer("❗️ Фото обязательно. Пожалуйста, загрузите изображение.")
+            await message.answer(TEXT[lang]["photo_required"])
             return
         
         TEMP[uid]["photo"] = message.photo[-1].file_id if message.photo else message.document.file_id
         TEMP[uid]["step"] = "work_comment"
-        await message.answer("✍️ Теперь введите комментарий:")
+        await message.answer(TEXT[lang]["enter_comment"])
         return
 
     # Шаг с комментарием и отправка
     if step == "work_comment":
         if "work_type" not in TEMP[uid] or "car" not in TEMP[uid]:
             TEMP[uid].pop("step", None)
-            return await message.answer("⚠️ Сессия устарела. Начните заново.")
+            return await message.answer(TEXT[lang]["session_expired"])
+
 
         driver_info = DRIVERS[uid]
         caption = (
@@ -455,6 +479,7 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
