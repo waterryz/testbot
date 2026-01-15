@@ -113,8 +113,8 @@ TEXT = {
         "ask_car": "🚗 Введите номер автомобиля:",
         "ask_text": "✍️ Введите сообщение:",
         "ask_photo": "📸 Загрузите фото.",
-        "ask_photo_dmv": "📸 Загрузите фото DMV-инспекции и машину с 4 сторон",
-        "ask_photo_service": "📸 Загрузите фото ресита",
+        "ask_photo_dmv": "📸 Загрузите фото стикера DMV-инспекции и машину с 4 сторон и фото одометра",
+        "ask_photo_service": "📸 Загрузите фото ресит и фото одометра",
         "sent": "✅ Сообщение отправлено администрации.",
         "no_access": "⛔️ У вас нет доступа."
     },
@@ -187,8 +187,8 @@ TEXT = {
         "ask_car": "🚗 Enter vehicle number:",
         "ask_text": "✍️ Enter message:",
         "ask_photo": "📸 Upload photo.",
-        "ask_photo_dmv": "📸 Upload DMV inspection photo and vehicle photos from all 4 sides.",
-        "ask_photo_service": "📸 Upload a photo of the receipt",
+        "ask_photo_dmv": "📸 Upload a photo of the DMV inspection sticker and the car from all four sides, along with a photo of the odometer.",
+        "ask_photo_service": "📸 Upload a photo of the receipt with the photo of the odometr",
         "sent": "✅ Message sent.",
         "no_access": "⛔️ No access."
     }
@@ -419,7 +419,7 @@ async def handle_messages(message: types.Message):
         
         TEMP[uid]["photo"] = message.photo[-1].file_id if message.photo else message.document.file_id
         TEMP[uid]["step"] = "work_comment"
-        await message.answer("✍️ Теперь введите комментарий или напишите '-':")
+        await message.answer("✍️ Теперь введите комментарий:")
         return
 
     # Шаг с комментарием и отправка
@@ -455,5 +455,6 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
