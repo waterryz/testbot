@@ -43,6 +43,8 @@ TEXT = {
         "choose_lang": "🌐 Выберите язык / Choose language",
         "work_info": (
             "🛠 *Обслуживание автомобиля*\n\n"
+            "Инспекцию можно сделать в любом сертифицированном сервисе"
+            "Включая базовый. Удобно совместить инспецию с заменой масла.\n"
             "*Основной сервис и контакты:*\n\n"
             "🔧 *Игорь Электрик* — +1 (646) 420–7572\n"
             "📍 2029 E 24th St, Brooklyn, NY\n"
@@ -133,6 +135,8 @@ TEXT = {
         "choose_lang": "🌐 Choose language",
         "work_info": (
             "🛠 *Vehicle Maintenance*\n\n"
+            "An inspection can be done at any certified service center."
+            "Including the basic one. It's convenient to combine the inspection with an oil change."
             "*Main service & contacts:*\n\n"
             "🔧 *Igor Electrician* — +1 (646) 420–7572\n"
             "📍 2029 E 24th St, Brooklyn, NY\n"
@@ -479,6 +483,7 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
